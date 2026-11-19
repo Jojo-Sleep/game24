@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #05080c;
+  --color-ink-900: #080d13;
+  --color-ink-800: #0d141d;
+  --color-ink-700: #141d29;
+  --color-neon: #3ee0a1;
+  --color-neon-soft: #7cf0c4;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+:root {
+  --mx: 50vw;
+  --my: 18vh;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: #e6edf7;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: contain;
+}
+
+button,
+input {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 移动端安全区：刘海与底部 Home 指示条 */
+.app-shell {
+  padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* 触屏设备没有光标，隐藏跟随光斑 */
+@media (hover: none) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
+::selection {
+  background: rgba(62, 224, 161, 0.3);
+  color: #ffffff;
+}
+
+/* ---------- 背景动效 ---------- */
+.aurora {
+  animation: aurora-drift 16s ease-in-out infinite alternate;
+}
+
+.aurora-slow {
+  animation: aurora-drift 22s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(44px, 32px, 0) scale(1.1);
+  }
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 28%, transparent 76%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 62% at 50% 0%, #000 28%, transparent 76%);
+}
+
+.cursor-glow {
+  background: radial-gradient(520px circle at var(--mx) var(--my), rgba(62, 224, 161, 0.1), transparent 65%);
+}
+
+/* ---------- 答对时的碎片 ---------- */
+.confetti-piece {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: 6px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-burst 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora,
+  .aurora-slow,
+  .confetti-piece {
+    animation: none;
+  }
+}
