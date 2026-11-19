@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
-export type GameId = 'twenty-four' | 'thunder' | 'popstar' | 'fishing';
+export type GameId = 'twenty-four' | 'thunder' | 'popstar' | 'fishing' | 'spider' | 'mahjong' | 'eggy';
 
 interface LobbyProps {
   onSelect: (id: GameId) => void;
@@ -18,6 +18,31 @@ interface GameCard {
 }
 
 const GAMES: GameCard[] = [
+  {
+    id: 'mahjong',
+    name: '四人麻将',
+    tag: '联机',
+    desc: '建房邀请好友，吃碰杠胡，支持电脑补位',
+    icon: <span className="text-xl font-extrabold">中</span>,
+    iconClass: 'border-rose-400/30 bg-rose-400/10 text-rose-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(251,113,133,0.9)]',
+  },
+  {
+    id: 'eggy',
+    name: '蛋仔闯关',
+    tag: '3D',
+    desc: '操控蛋仔越过浮空平台，躲开机关冲向终点',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <ellipse cx="12" cy="13" rx="7" ry="9" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="9.6" cy="11.6" r="1" fill="currentColor" />
+        <circle cx="14.4" cy="11.6" r="1" fill="currentColor" />
+        <path d="M10.2 14.4c1.2.9 2.4.9 3.6 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+    iconClass: 'border-lime-300/30 bg-lime-300/10 text-lime-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(190,242,100,0.9)]',
+  },
   {
     id: 'twenty-four',
     name: '24 点',
@@ -73,6 +98,24 @@ const GAMES: GameCard[] = [
     iconClass: 'border-cyan-300/30 bg-cyan-300/10 text-cyan-300',
     glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(103,232,249,0.9)]',
   },
+  {
+    id: 'spider',
+    name: '蜘蛛扑克',
+    tag: '纸牌',
+    desc: '十列牌堆，收走 K 到 A 的同花色顺子，集齐 8 组',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4.5" y="3" width="9" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+        <rect x="10.5" y="7.5" width="9" height="13" rx="1.5" fill="#0b1220" stroke="currentColor" strokeWidth="1.4" />
+        <path
+          d="M15 10.6c-1.5 0-2.6 1-2.6 2.2 0 1.5 1.8 2.3 2.6 3.3 0.8-1 2.6-1.8 2.6-3.3 0-1.2-1.1-2.2-2.6-2.2z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
+    iconClass: 'border-violet-400/30 bg-violet-400/10 text-violet-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(177,140,255,0.9)]',
+  },
 ];
 
 export function Lobby({ onSelect }: LobbyProps) {
@@ -87,7 +130,7 @@ export function Lobby({ onSelect }: LobbyProps) {
           小游戏
           <span className="bg-gradient-to-r from-neon to-sky-300 bg-clip-text text-transparent">合集</span>
         </h1>
-        <p className="text-xs text-slate-500">四款游戏，随时开一局</p>
+        <p className="text-xs text-slate-500">七款游戏，随时开一局</p>
       </header>
 
       <div className="flex flex-col gap-3">
