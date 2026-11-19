@@ -77,7 +77,12 @@ export class EggyEngine {
   private sun: THREE.DirectionalLight;
 
   private player: THREE.Group;
+  private playerVisual!: THREE.Group;
+  private upper!: THREE.Group;
+  private feet: THREE.Mesh[] = [];
   private eggBody: THREE.Mesh;
+  private walkPhase = 0;
+  private walkBlend = 0;
 
   private platforms: PlatformRuntime[] = [];
   private hammers: HammerRuntime[] = [];
@@ -462,13 +467,18 @@ export class EggyEngine {
 
   private createPlayer(): { group: THREE.Group; body: THREE.Mesh } {
     const group = new THREE.Group();
+    const visual = new THREE.Group();
+    const upper = new THREE.Group();
+    visual.add(upper);
+    group.add(visual);
+
     const body = new THREE.Mesh(
       new THREE.SphereGeometry(0.55, 32, 24),
       new THREE.MeshStandardMaterial({ color: 0xfff4e6, roughness: 0.45 }),
     );
     body.scale.set(1, 1.2, 1);
     body.castShadow = true;
-    group.add(body);
+    upper.add(body);
 
     const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
     const dark = new THREE.MeshStandardMaterial({ color: 0x1b2430, roughness: 0.3 });
@@ -476,11 +486,11 @@ export class EggyEngine {
     for (const x of [-0.17, 0.17]) {
       const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 12), white);
       eye.position.set(x, 0.18, 0.46);
-      group.add(eye);
+      upper.add(eye);
 
       const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), dark);
       pupil.position.set(x, 0.18, 0.55);
-      group.add(pupil);
+      upper.add(pupil);
     }
 
     const blush = new THREE.MeshStandardMaterial({ color: 0xff9fbd, roughness: 1 });
@@ -488,16 +498,18 @@ export class EggyEngine {
       const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), blush);
       cheek.scale.set(1.4, 0.8, 0.4);
       cheek.position.set(x, 0, 0.41);
-      group.add(cheek);
+      upper.add(cheek);
     }
 
     const footMaterial = new THREE.MeshStandardMaterial({ color: 0xffb703, roughness: 0.65 });
+    this.feet = [];
     for (const x of [-0.2, 0.2]) {
       const foot = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), footMaterial);
       foot.scale.set(1, 0.7, 1.35);
       foot.position.set(x, -0.62, 0.06);
       foot.castShadow = true;
-      group.add(foot);
+      visual.add(foot);
+      this.feet.push(foot);
     }
 
     const hat = new THREE.Mesh(
@@ -507,14 +519,17 @@ export class EggyEngine {
     hat.position.set(0, 0.83, 0);
     hat.rotation.z = 0.12;
     hat.castShadow = true;
-    group.add(hat);
+    upper.add(hat);
 
     const pom = new THREE.Mesh(
       new THREE.SphereGeometry(0.09, 12, 10),
       new THREE.MeshStandardMaterial({ color: 0xffe08a, roughness: 0.5 }),
     );
     pom.position.set(0.06, 1.11, 0);
-    group.add(pom);
+    upper.add(pom);
+
+    this.playerVisual = visual;
+    this.upper = upper;
 
     return { group, body };
   }
@@ -761,16 +776,49 @@ export class EggyEngine {
 
   private updatePlayerVisual(dt: number): void {
     const speed = Math.hypot(this.velocity.x, this.velocity.z);
+
     if (speed > 0.4) {
       const targetYaw = Math.atan2(this.velocity.x, this.velocity.z);
       let diff = targetYaw - this.player.rotation.y;
       while (diff > Math.PI) diff -= Math.PI * 2;
       while (diff < -Math.PI) diff += Math.PI * 2;
       this.player.rotation.y += diff * Math.min(1, 12 * dt);
-      this.player.rotation.z = THREE.MathUtils.lerp(this.player.rotation.z, -this.velocity.x * 0.02, Math.min(1, 8 * dt));
-    } else {
-      this.player.rotation.z = THREE.MathUtils.lerp(this.player.rotation.z, 0, Math.min(1, 8 * dt));
     }
+
+    // 着地移动时进入走路状态：双脚交替迈步、上身起伏与轻微摇摆
+    const stride = this.grounded ? Math.min(1, speed / 5.5) : 0;
+    this.walkBlend += (stride - this.walkBlend) * Math.min(1, 12 * dt);
+
+    if (this.walkBlend > 0.02) {
+      this.walkPhase += dt * (7 + speed * 1.15);
+    }
+
+    const step = Math.sin(this.walkPhase);
+    const blend = this.walkBlend;
+
+    this.feet.forEach((foot, index) => {
+      const swing = index === 0 ? step : -step;
+      const lift = Math.max(0, swing);
+      foot.position.set(
+        index === 0 ? -0.2 : 0.2,
+        -0.62 + lift * 0.16 * blend,
+        0.06 + swing * 0.2 * blend,
+      );
+      foot.rotation.x = swing * 0.35 * blend;
+    });
+
+    // 上身跟着步伐起伏，整个身体轻微摇摆并向前倾
+    this.upper.position.y = Math.abs(step) * 0.055 * blend;
+    this.playerVisual.rotation.x = THREE.MathUtils.lerp(
+      this.playerVisual.rotation.x,
+      -0.09 * blend,
+      Math.min(1, 8 * dt),
+    );
+    this.playerVisual.rotation.z = THREE.MathUtils.lerp(
+      this.playerVisual.rotation.z,
+      -step * 0.06 * blend - this.velocity.x * 0.015,
+      Math.min(1, 10 * dt),
+    );
 
     this.squash = Math.max(0, this.squash - dt * 4);
     const bob = this.grounded ? Math.sin(this.motionTime * 11) * 0.035 * Math.min(1, speed / 5) : 0;
@@ -804,6 +852,14 @@ export class EggyEngine {
     this.grounded = false;
     this.hitCooldown = 0;
     this.squash = 0;
+    this.walkPhase = 0;
+    this.walkBlend = 0;
+    this.playerVisual.rotation.set(0, 0, 0);
+    this.upper.position.y = 0;
+    this.feet.forEach((foot, index) => {
+      foot.position.set(index === 0 ? -0.2 : 0.2, -0.62, 0.06);
+      foot.rotation.x = 0;
+    });
     this.eggBody.scale.set(1, 1.2, 1);
     this.camera.position.set(0, START_TOP + 5.86, 9.6);
   }

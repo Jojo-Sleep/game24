@@ -199,14 +199,14 @@ export function SpiderGame({ onExit }: SpiderGameProps) {
               setStatus('ready');
               setSelection(null);
             }}
-            className="h-8 select-none rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] text-slate-300 transition hover:border-white/25 hover:text-white"
+            className="h-9 select-none rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] text-slate-300 transition hover:border-white/25 hover:text-white"
           >
             难度
           </button>
           <button
             type="button"
             onClick={() => start(difficulty)}
-            className="h-8 select-none rounded-full border border-neon/30 bg-neon/10 px-2.5 text-[11px] text-neon transition hover:bg-neon/20"
+            className="h-9 select-none rounded-full border border-neon/30 bg-neon/10 px-3 text-[11px] text-neon transition hover:bg-neon/20"
           >
             重开
           </button>
@@ -215,7 +215,7 @@ export function SpiderGame({ onExit }: SpiderGameProps) {
     >
       <section
         className="relative flex flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#070d16]/85 p-2 shadow-[0_24px_70px_-40px_rgba(62,224,161,0.35)] backdrop-blur-xl sm:p-3"
-        style={{ height: 'calc(100dvh - 130px)', minHeight: 260 }}
+        style={{ height: 'calc(100dvh - 130px)', minHeight: 220 }}
       >
         {status === 'playing' && (
           <div className="flex shrink-0 items-center justify-between gap-2 px-0.5 pb-2">
@@ -232,7 +232,7 @@ export function SpiderGame({ onExit }: SpiderGameProps) {
                 type="button"
                 onClick={undo}
                 disabled={historyRef.current.length === 0}
-                className="h-7 select-none rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] text-slate-300 transition hover:border-white/25 hover:text-white disabled:opacity-40"
+                className="h-9 select-none rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] text-slate-300 transition hover:border-white/25 hover:text-white disabled:opacity-40"
               >
                 撤销
               </button>
@@ -240,7 +240,7 @@ export function SpiderGame({ onExit }: SpiderGameProps) {
                 type="button"
                 onClick={deal}
                 disabled={dealsLeft === 0}
-                className="h-7 select-none rounded-full border border-neon/30 bg-neon/10 px-2.5 text-[11px] text-neon transition hover:bg-neon/20 disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-slate-500"
+                className="h-9 select-none rounded-full border border-neon/30 bg-neon/10 px-3 text-[11px] text-neon transition hover:bg-neon/20 disabled:border-white/10 disabled:bg-white/[0.04] disabled:text-slate-500"
               >
                 发牌 ×{dealsLeft}
               </button>

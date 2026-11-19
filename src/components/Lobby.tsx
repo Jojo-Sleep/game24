@@ -1,7 +1,17 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
-export type GameId = 'twenty-four' | 'thunder' | 'popstar' | 'fishing' | 'spider' | 'mahjong' | 'eggy';
+export type GameId =
+  | 'twenty-four'
+  | 'thunder'
+  | 'popstar'
+  | 'fishing'
+  | 'spider'
+  | 'mahjong'
+  | 'eggy'
+  | 'boxing'
+  | 'racing'
+  | 'bigfish';
 
 interface LobbyProps {
   onSelect: (id: GameId) => void;
@@ -42,6 +52,69 @@ const GAMES: GameCard[] = [
     ),
     iconClass: 'border-lime-300/30 bg-lime-300/10 text-lime-300',
     glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(190,242,100,0.9)]',
+  },
+  {
+    id: 'boxing',
+    name: '拳王',
+    tag: '对战',
+    desc: '移动、出拳、格挡，三回合内击倒对手',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M6.4 10.2c0-2.7 2-4.9 4.7-4.9h2.5c2.7 0 4.8 2.2 4.8 4.9v1.9c0 2.7-2.1 4.9-4.8 4.9h-1.1v2.4c0 .9-.7 1.6-1.6 1.6H9.2c-.9 0-1.6-.7-1.6-1.6v-4.1c-.8-.9-1.2-2-1.2-3.1v-2z"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <path d="M8.6 7.6h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+    iconClass: 'border-amber-300/30 bg-amber-300/10 text-amber-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(245,185,66,0.9)]',
+  },
+  {
+    id: 'racing',
+    name: '极速赛车',
+    tag: '竞速',
+    desc: '无尽公路上躲避车流，氮气加速刷新里程',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M3.8 14.9l1.6-4c.3-.8 1.1-1.3 2-1.3h9.2c.9 0 1.7.5 2 1.3l1.6 4"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <rect x="3" y="14.6" width="18" height="3.6" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+        <circle cx="7.4" cy="18.4" r="1.5" fill="currentColor" />
+        <circle cx="16.6" cy="18.4" r="1.5" fill="currentColor" />
+        <path d="M7.6 9.6V7.1h8.8v2.5" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      </svg>
+    ),
+    iconClass: 'border-cyan-300/30 bg-cyan-300/10 text-cyan-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(103,232,249,0.9)]',
+  },
+  {
+    id: 'bigfish',
+    name: '大鱼吃小鱼',
+    tag: '休闲',
+    desc: '吃掉更小的鱼不断长大，躲开比你大的家伙',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M2.5 14.2c1.9-2.3 4.3-3.6 7-3.6 2.6 0 4.7 1.4 5.9 3.3l1.6-1.5v3.6l-1.6-1.5c-1.2 1.9-3.3 3.3-5.9 3.3-2.7 0-5.1-1.3-7-3.6z"
+          fill="currentColor"
+          opacity="0.9"
+        />
+        <path
+          d="M16 7.4c.9-1.1 2.1-1.8 3.4-1.8 1.3 0 2.3.6 2.9 1.6l.8-.7v1.8l-.8-.7c-.6 1-1.6 1.6-2.9 1.6-1.3 0-2.5-.7-3.4-1.8z"
+          fill="currentColor"
+          opacity="0.55"
+        />
+      </svg>
+    ),
+    iconClass: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(52,211,153,0.9)]',
   },
   {
     id: 'twenty-four',
@@ -130,7 +203,7 @@ export function Lobby({ onSelect }: LobbyProps) {
           小游戏
           <span className="bg-gradient-to-r from-neon to-sky-300 bg-clip-text text-transparent">合集</span>
         </h1>
-        <p className="text-xs text-slate-500">七款游戏，随时开一局</p>
+        <p className="text-xs text-slate-500">十款游戏，随时开一局</p>
       </header>
 
       <div className="flex flex-col gap-3">

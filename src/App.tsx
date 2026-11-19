@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Background } from './components/Background';
 import { Lobby, type GameId } from './components/Lobby';
+import { BigFishGame } from './games/BigFishGame';
+import { BoxingGame } from './games/BoxingGame';
 import { EggyGame } from './games/EggyGame';
 import { FishingGame } from './games/FishingGame';
 import { MahjongGame } from './games/MahjongGame';
 import { PopStarGame } from './games/PopStarGame';
+import { RacingGame } from './games/RacingGame';
 import { SpiderGame } from './games/SpiderGame';
 import { ThunderGame } from './games/ThunderGame';
 import { TwentyFourGame } from './games/TwentyFourGame';
@@ -27,6 +30,9 @@ export default function App() {
         {game === 'thunder' && <ThunderGame onExit={() => setGame(null)} />}
         {game === 'popstar' && <PopStarGame onExit={() => setGame(null)} />}
         {game === 'eggy' && <EggyGame onExit={() => setGame(null)} />}
+        {game === 'boxing' && <BoxingGame onExit={() => setGame(null)} />}
+        {game === 'racing' && <RacingGame onExit={() => setGame(null)} />}
+        {game === 'bigfish' && <BigFishGame onExit={() => setGame(null)} />}
         {game === 'fishing' && <FishingGame onExit={() => setGame(null)} />}
         {game === 'spider' && <SpiderGame onExit={() => setGame(null)} />}
         {game === 'mahjong' && (

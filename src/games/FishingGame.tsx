@@ -495,7 +495,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
           )}
         </div>
 
-        <p className="mt-2 text-center text-[11px] text-slate-500">空格键也可以抛竿 / 收线</p>
+        <p className="pointer-hint mt-2 text-center text-[11px] text-slate-500">空格键也可以抛竿 / 收线</p>
       </div>
     </GameFrame>
   );

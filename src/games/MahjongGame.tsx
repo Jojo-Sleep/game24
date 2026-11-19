@@ -364,7 +364,7 @@ export function MahjongGame({ onExit, initialRoom }: MahjongGameProps) {
                     key={`${option.kind}-${index}`}
                     type="button"
                     onClick={() => net.act({ kind: 'claim', index })}
-                    className="h-9 rounded-full bg-amber-300 px-4 text-xs font-bold text-ink-950 transition active:scale-95"
+                    className="h-10 rounded-full bg-amber-300 px-4 text-xs font-bold text-ink-950 transition active:scale-95"
                   >
                     {claimLabel(option)}
                   </button>
@@ -372,7 +372,7 @@ export function MahjongGame({ onExit, initialRoom }: MahjongGameProps) {
                 <button
                   type="button"
                   onClick={() => net.act({ kind: 'pass' })}
-                  className="h-9 rounded-full border border-white/15 bg-white/[0.05] px-4 text-xs text-slate-300 transition hover:border-white/30"
+                  className="h-10 rounded-full border border-white/15 bg-white/[0.05] px-4 text-xs text-slate-300 transition hover:border-white/30"
                 >
                   过
                 </button>
@@ -464,7 +464,7 @@ export function MahjongGame({ onExit, initialRoom }: MahjongGameProps) {
             onChange={(event) => saveName(event.target.value)}
             maxLength={8}
             placeholder="给自己起个名字"
-            className="mt-1.5 h-10 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-neon/50"
+            className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-base text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-neon/50 sm:h-10 sm:text-sm"
           />
         </div>
 
@@ -478,7 +478,7 @@ export function MahjongGame({ onExit, initialRoom }: MahjongGameProps) {
               onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
               maxLength={8}
               placeholder="房间码"
-              className="h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 font-mono text-sm uppercase tracking-[0.2em] text-slate-100 outline-none transition placeholder:tracking-normal placeholder:text-slate-600 focus:border-neon/50"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-white/10 bg-black/30 px-3 font-mono text-base uppercase tracking-[0.2em] text-slate-100 outline-none transition placeholder:tracking-normal placeholder:text-slate-600 focus:border-neon/50 sm:h-10 sm:text-sm"
             />
             <button
               type="button"

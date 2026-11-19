@@ -66,6 +66,29 @@ input {
   }
 }
 
+/* 触屏虚拟按键：按输入设备显示，而不是按屏幕宽度，
+   保证平板、横屏手机等宽屏触屏设备同样可以操作 */
+.touch-controls {
+  display: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+
+/* 仅键鼠可用的操作提示 */
+.pointer-hint {
+  display: block;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .pointer-hint {
+    display: none;
+  }
+}
+
 ::selection {
   background: rgba(62, 224, 161, 0.3);
   color: #ffffff;

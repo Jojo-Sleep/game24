@@ -58,7 +58,7 @@ function Joystick({ onMove }: { onMove: (x: number, y: number) => void }) {
       }}
       onPointerUp={end}
       onPointerCancel={end}
-      className="absolute bottom-4 left-4 z-20 flex h-28 w-28 touch-none items-center justify-center rounded-full border border-white/25 bg-black/25 backdrop-blur-sm sm:hidden"
+      className="touch-controls absolute bottom-4 left-4 z-20 h-28 w-28 touch-none items-center justify-center rounded-full border border-white/25 bg-black/25 backdrop-blur-sm"
     >
       <div
         className="pointer-events-none h-12 w-12 rounded-full border border-white/40 bg-white/70 shadow-lg"
@@ -155,7 +155,7 @@ export function EggyGame({ onExit }: EggyGameProps) {
     >
       <section
         className="relative touch-none overflow-hidden rounded-[22px] border border-white/10 bg-[#0a1524] shadow-[0_24px_70px_-40px_rgba(62,224,161,0.4)]"
-        style={{ height: 'calc(100dvh - 130px)', minHeight: 320 }}
+        style={{ height: 'calc(100dvh - 130px)', minHeight: 220 }}
       >
         <div ref={mountRef} className="absolute inset-0" />
 
@@ -183,7 +183,7 @@ export function EggyGame({ onExit }: EggyGameProps) {
                 event.preventDefault();
                 engineRef.current?.jump();
               }}
-              className="absolute bottom-6 right-5 z-20 flex h-20 w-20 touch-none select-none items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/90 text-sm font-bold text-ink-950 shadow-[0_0_0_8px_rgba(245,185,66,0.15)] active:scale-95 sm:hidden"
+              className="touch-controls absolute bottom-6 right-5 z-20 h-20 w-20 touch-none select-none items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/90 text-sm font-bold text-ink-950 shadow-[0_0_0_8px_rgba(245,185,66,0.15)] active:scale-95"
             >
               跳跃
             </button>
