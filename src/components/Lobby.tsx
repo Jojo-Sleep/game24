@@ -1,0 +1,123 @@
+import type { ReactNode } from 'react';
+import { cn } from '../lib/cn';
+
+export type GameId = 'twenty-four' | 'thunder' | 'popstar';
+
+interface LobbyProps {
+  onSelect: (id: GameId) => void;
+}
+
+interface GameCard {
+  id: GameId;
+  name: string;
+  tag: string;
+  desc: string;
+  icon: ReactNode;
+  iconClass: string;
+  glowClass: string;
+}
+
+const GAMES: GameCard[] = [
+  {
+    id: 'twenty-four',
+    name: '24 点',
+    tag: '益智',
+    desc: '四张数字牌，用加减乘除凑出 24',
+    icon: <span className="font-mono text-xl font-extrabold">24</span>,
+    iconClass: 'border-neon/30 bg-neon/10 text-neon',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(62,224,161,0.9)]',
+  },
+  {
+    id: 'thunder',
+    name: '雷霆战机',
+    tag: '射击',
+    desc: '拖动飞船，自动开火，撑得越久分越高',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3 L19 20 L12 16.5 L5 20 Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M12 3 L12 16.5" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
+      </svg>
+    ),
+    iconClass: 'border-sky-400/30 bg-sky-400/10 text-sky-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(128,193,255,0.9)]',
+  },
+  {
+    id: 'popstar',
+    name: '消灭星星',
+    tag: '消除',
+    desc: '点击相连的同色星星，一次消得越多分越高',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.7 1.2 6.6L12 17.7l-5.9 3.1 1.2-6.6L2.5 9.5l6.6-.9L12 2.5z" />
+      </svg>
+    ),
+    iconClass: 'border-amber-300/30 bg-amber-300/10 text-amber-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(245,185,66,0.9)]',
+  },
+];
+
+export function Lobby({ onSelect }: LobbyProps) {
+  return (
+    <div className="flex flex-col gap-5 pt-1 sm:pt-3">
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon" />
+          <span className="text-[10px] tracking-[0.26em] text-slate-500">ARCADE</span>
+        </div>
+        <h1 className="text-[28px] font-extrabold leading-tight sm:text-3xl">
+          小游戏
+          <span className="bg-gradient-to-r from-neon to-sky-300 bg-clip-text text-transparent">合集</span>
+        </h1>
+        <p className="text-xs text-slate-500">三款游戏，随时开一局</p>
+      </header>
+
+      <div className="flex flex-col gap-3">
+        {GAMES.map((game) => (
+          <button
+            key={game.id}
+            type="button"
+            onClick={() => onSelect(game.id)}
+            className={cn(
+              'group relative flex w-full select-none items-center gap-3.5 overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.035] p-3.5 text-left transition-all duration-200',
+              'hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.99] sm:gap-4 sm:p-4',
+              game.glowClass,
+            )}
+          >
+            <span
+              className={cn(
+                'flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border sm:h-14 sm:w-14',
+                game.iconClass,
+              )}
+            >
+              {game.icon}
+            </span>
+
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-2">
+                <span className="text-[15px] font-semibold text-slate-100 sm:text-base">{game.name}</span>
+                <span className="rounded-full border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-400">
+                  {game.tag}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-slate-400">{game.desc}</span>
+            </span>
+
+            <span className="shrink-0 text-slate-600 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-slate-200">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M9 5 L16 12 L9 19"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <p className="text-center text-[11px] text-slate-600">全部在本地运行，进度自动保存在浏览器</p>
+    </div>
+  );
+}

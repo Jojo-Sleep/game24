@@ -125,10 +125,50 @@ input {
   }
 }
 
+/* ---------- 消灭星星 ---------- */
+.star {
+  position: absolute;
+  inset: 7%;
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.9), currentColor 46%, currentColor 100%);
+  clip-path: polygon(50% 2%, 61% 36%, 97% 36%, 68% 58%, 79% 92%, 50% 71%, 21% 92%, 32% 58%, 3% 36%, 39% 36%);
+  filter: drop-shadow(0 0 5px currentColor);
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.star-pop {
+  transform: scale(0.15);
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .star-btn:hover .star {
+    transform: scale(1.1);
+  }
+}
+
+.gain-pop {
+  animation: gain-rise 0.8s ease-out forwards;
+}
+
+@keyframes gain-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aurora,
   .aurora-slow,
-  .confetti-piece {
+  .confetti-piece,
+  .gain-pop {
     animation: none;
   }
 }
