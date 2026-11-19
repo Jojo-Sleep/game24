@@ -383,25 +383,53 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
       }
 
       ctx.shadowBlur = 12;
-      ctx.shadowColor = '#80c1ff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       for (const enemy of s.enemies) {
+        const r = enemy.r;
+        const armored = enemy.maxHp > 1;
+        const color = armored ? '#c4a6ff' : '#80c1ff';
+
         ctx.save();
         ctx.translate(enemy.x, enemy.y);
-        ctx.rotate(enemy.phase * 0.6);
+        ctx.rotate(Math.sin(enemy.phase * 2.4) * 0.12);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = color;
+
+        // 尾焰
+        ctx.fillStyle = armored ? 'rgba(196,166,255,0.45)' : 'rgba(128,193,255,0.45)';
         ctx.beginPath();
-        for (let i = 0; i < 6; i += 1) {
-          const angle = (Math.PI / 3) * i;
-          const px = Math.cos(angle) * enemy.r;
-          const py = Math.sin(angle) * enemy.r;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
+        ctx.moveTo(-r * 0.18, -r * 0.7);
+        ctx.lineTo(0, -r * 1.15 - 7);
+        ctx.lineTo(r * 0.18, -r * 0.7);
         ctx.closePath();
-        ctx.fillStyle = enemy.maxHp > 1 ? '#2a2438' : '#132b3d';
         ctx.fill();
-        ctx.strokeStyle = enemy.maxHp > 1 ? '#c4a6ff' : '#80c1ff';
+
+        // 敌机轮廓（机头朝下）
+        ctx.beginPath();
+        ctx.moveTo(0, r * 1.3);
+        ctx.lineTo(r * 0.3, r * 0.25);
+        ctx.lineTo(r * 1.15, -r * 0.1);
+        ctx.lineTo(r * 1.15, -r * 0.4);
+        ctx.lineTo(r * 0.3, -r * 0.42);
+        ctx.lineTo(r * 0.55, -r * 0.95);
+        ctx.lineTo(0, -r * 0.72);
+        ctx.lineTo(-r * 0.55, -r * 0.95);
+        ctx.lineTo(-r * 0.3, -r * 0.42);
+        ctx.lineTo(-r * 1.15, -r * 0.4);
+        ctx.lineTo(-r * 1.15, -r * 0.1);
+        ctx.lineTo(-r * 0.3, r * 0.25);
+        ctx.closePath();
+        ctx.fillStyle = armored ? '#2a2438' : '#10283a';
+        ctx.fill();
+        ctx.strokeStyle = color;
         ctx.stroke();
+
+        // 座舱
+        ctx.fillStyle = armored ? '#f0dcff' : '#bfe9ff';
+        ctx.beginPath();
+        ctx.ellipse(0, r * 0.32, r * 0.16, r * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.restore();
       }
       ctx.shadowBlur = 0;

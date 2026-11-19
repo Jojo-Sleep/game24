@@ -128,10 +128,12 @@ input {
 /* ---------- 消灭星星 ---------- */
 .star {
   position: absolute;
-  inset: 7%;
-  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.9), currentColor 46%, currentColor 100%);
-  clip-path: polygon(50% 2%, 61% 36%, 97% 36%, 68% 58%, 79% 92%, 50% 71%, 21% 92%, 32% 58%, 3% 36%, 39% 36%);
-  filter: drop-shadow(0 0 5px currentColor);
+  inset: 9%;
+  border-radius: 22%;
+  background: radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.92), currentColor 58%);
+  box-shadow:
+    0 0 10px -2px currentColor,
+    inset 0 -2px 5px rgba(0, 0, 0, 0.25);
   transition: transform 0.16s ease, opacity 0.16s ease;
 }
 
