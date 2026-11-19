@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
-export type GameId = 'twenty-four' | 'thunder' | 'popstar';
+export type GameId = 'twenty-four' | 'thunder' | 'popstar' | 'fishing';
 
 interface LobbyProps {
   onSelect: (id: GameId) => void;
@@ -54,6 +54,25 @@ const GAMES: GameCard[] = [
     iconClass: 'border-amber-300/30 bg-amber-300/10 text-amber-300',
     glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(245,185,66,0.9)]',
   },
+  {
+    id: 'fishing',
+    name: '钓鱼',
+    tag: '休闲',
+    desc: '抛竿、等鱼咬钩，按住收线别让线绷断',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M2.5 12c2.4-3.6 5.6-5.5 9.2-5.5 3.1 0 5.7 1.4 7.3 3.4L22 8v8l-3-1.9c-1.6 2-4.2 3.4-7.3 3.4-3.6 0-6.8-1.9-9.2-5.5z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <circle cx="16" cy="11" r="1" fill="currentColor" />
+      </svg>
+    ),
+    iconClass: 'border-cyan-300/30 bg-cyan-300/10 text-cyan-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(103,232,249,0.9)]',
+  },
 ];
 
 export function Lobby({ onSelect }: LobbyProps) {
@@ -68,7 +87,7 @@ export function Lobby({ onSelect }: LobbyProps) {
           小游戏
           <span className="bg-gradient-to-r from-neon to-sky-300 bg-clip-text text-transparent">合集</span>
         </h1>
-        <p className="text-xs text-slate-500">三款游戏，随时开一局</p>
+        <p className="text-xs text-slate-500">四款游戏，随时开一局</p>
       </header>
 
       <div className="flex flex-col gap-3">

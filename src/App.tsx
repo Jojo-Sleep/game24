@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Background } from './components/Background';
 import { Lobby, type GameId } from './components/Lobby';
+import { FishingGame } from './games/FishingGame';
 import { PopStarGame } from './games/PopStarGame';
 import { ThunderGame } from './games/ThunderGame';
 import { TwentyFourGame } from './games/TwentyFourGame';
@@ -21,6 +22,7 @@ export default function App() {
         {game === 'twenty-four' && <TwentyFourGame onExit={() => setGame(null)} />}
         {game === 'thunder' && <ThunderGame onExit={() => setGame(null)} />}
         {game === 'popstar' && <PopStarGame onExit={() => setGame(null)} />}
+        {game === 'fishing' && <FishingGame onExit={() => setGame(null)} />}
       </main>
     </div>
   );

@@ -166,11 +166,155 @@ input {
   }
 }
 
+/* ---------- 钓鱼 ---------- */
+.water-rays {
+  background:
+    linear-gradient(105deg, transparent 34%, rgba(160, 232, 255, 0.1) 45%, transparent 56%),
+    linear-gradient(115deg, transparent 56%, rgba(160, 232, 255, 0.07) 63%, transparent 71%);
+  animation: rays-drift 9s ease-in-out infinite alternate;
+}
+
+@keyframes rays-drift {
+  from {
+    transform: translateX(-4%);
+  }
+  to {
+    transform: translateX(4%);
+  }
+}
+
+.bubble {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 240, 255, 0.35);
+  background: rgba(190, 240, 255, 0.08);
+  animation-name: bubble-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-420px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.swim-right {
+  animation: swim-right 18s linear infinite;
+}
+
+.swim-left {
+  animation: swim-left 24s linear infinite;
+}
+
+@keyframes swim-right {
+  from {
+    transform: translateX(-70px);
+  }
+  to {
+    transform: translateX(480px);
+  }
+}
+
+@keyframes swim-left {
+  from {
+    transform: translateX(480px) scaleX(-1);
+  }
+  to {
+    transform: translateX(-70px) scaleX(-1);
+  }
+}
+
+.bobber {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  transform: translate(-50%, 50%);
+  background: linear-gradient(180deg, #ff7a7a 45%, #f4f4f5 45%);
+  box-shadow: 0 0 12px rgba(255, 122, 122, 0.55);
+}
+
+.bobber-bite {
+  animation: bobber-dip 0.25s ease-in-out infinite alternate;
+}
+
+@keyframes bobber-dip {
+  from {
+    transform: translate(-50%, 50%);
+  }
+  to {
+    transform: translate(-50%, 110%);
+  }
+}
+
+.fish-approach {
+  animation: fish-approach 1.2s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes fish-approach {
+  from {
+    opacity: 0;
+    transform: translate(80px, -8px) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+.fish-struggle {
+  animation: fish-struggle 0.26s ease-in-out infinite alternate;
+}
+
+@keyframes fish-struggle {
+  from {
+    transform: translate(-16px, -2px) rotate(-8deg);
+  }
+  to {
+    transform: translate(0, 2px) rotate(8deg);
+  }
+}
+
+.caught-pop {
+  animation: caught-pop 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.2) both;
+}
+
+@keyframes caught-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aurora,
   .aurora-slow,
   .confetti-piece,
-  .gain-pop {
+  .gain-pop,
+  .water-rays,
+  .bubble,
+  .swim-right,
+  .swim-left,
+  .bobber-bite,
+  .fish-approach,
+  .fish-struggle,
+  .caught-pop {
     animation: none;
   }
 }
