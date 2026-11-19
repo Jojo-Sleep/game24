@@ -10,6 +10,7 @@ type Status = 'ready' | 'playing' | 'paused' | 'over';
 interface Bullet {
   x: number;
   y: number;
+  vx: number;
   vy: number;
   r: number;
 }
@@ -111,16 +112,19 @@ function burst(s: GameState, x: number, y: number, count: number, speed: number)
 
 function spawnEnemy(s: GameState) {
   const r = 12 + Math.random() * 7;
-  const hp = s.level >= 4 && Math.random() < 0.3 ? 2 : 1;
+  let hp = 1;
+  if (s.level >= 3 && Math.random() < 0.32) hp = 2;
+  if (s.level >= 7 && Math.random() < 0.22) hp = 3;
+
   s.enemies.push({
     x: 30 + Math.random() * (W - 60),
     y: -r - 12,
-    vy: 70 + s.level * 9 + Math.random() * 45,
+    vy: 75 + s.level * 12 + Math.random() * 40,
     r,
     hp,
     maxHp: hp,
     phase: Math.random() * Math.PI * 2,
-    fire: 1.2 + Math.random() * 1.8,
+    fire: Math.max(0.45, 1 - s.level * 0.06) + Math.random() * 1.4,
   });
 }
 
@@ -141,6 +145,7 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
   const [status, setStatus] = useState<Status>('ready');
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [level, setLevel] = useState(1);
   const [best, setBest] = useState<number>(() => {
     try {
       return Number(localStorage.getItem(BEST_KEY)) || 0;
@@ -156,6 +161,7 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
     setStatus('playing');
     setScore(0);
     setLives(3);
+    setLevel(1);
   }, []);
 
   const togglePause = useCallback(() => {
@@ -211,7 +217,10 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
       s.time += dt;
 
       const level = 1 + Math.floor(s.time / 18);
-      if (level !== s.level) s.level = level;
+      if (level !== s.level) {
+        s.level = level;
+        setLevel(level);
+      }
 
       if (s.player.inv > 0) s.player.inv = Math.max(0, s.player.inv - dt);
 
@@ -240,12 +249,12 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
       s.fireTimer -= dt;
       if (s.fireTimer <= 0) {
         s.fireTimer = Math.max(0.08, 0.17 - s.level * 0.006);
-        s.bullets.push({ x: s.player.x, y: s.player.y - 18, vy: -640, r: 3 });
+        s.bullets.push({ x: s.player.x, y: s.player.y - 18, vx: 0, vy: -640, r: 3 });
       }
 
       s.spawnTimer -= dt;
       if (s.spawnTimer <= 0) {
-        s.spawnTimer = Math.max(0.36, 1 - s.level * 0.06) * (0.7 + Math.random() * 0.6);
+        s.spawnTimer = Math.max(0.3, 0.95 - s.level * 0.07) * (0.7 + Math.random() * 0.6);
         spawnEnemy(s);
       }
 
@@ -273,7 +282,7 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
 
             if (enemy.hp <= 0) {
               s.enemies.splice(j, 1);
-              s.score += 30;
+              s.score += 20 + enemy.maxHp * 15;
               setScore(s.score);
               burst(s, enemy.x, enemy.y, 14, 220);
               s.shake = Math.max(s.shake, 4);
@@ -293,8 +302,31 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
         enemy.fire -= dt;
 
         if (enemy.fire <= 0 && enemy.y > 40 && enemy.y < H * 0.62) {
-          enemy.fire = 1.9 + Math.random();
-          s.enemyBullets.push({ x: enemy.x, y: enemy.y + enemy.r, vy: 220 + s.level * 10, r: 4 });
+          const cooldown = Math.max(0.6, 1.9 - s.level * 0.12);
+          enemy.fire = cooldown * (0.8 + Math.random() * 0.6);
+
+          const speed = 240 + s.level * 14;
+          const angle = Math.atan2(s.player.y - enemy.y, s.player.x - enemy.x);
+          s.enemyBullets.push({
+            x: enemy.x,
+            y: enemy.y + enemy.r,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: 4,
+          });
+
+          // 高等级敌人会额外散射两发
+          if (s.level >= 4 && Math.random() < 0.5) {
+            for (const spread of [-0.26, 0.26]) {
+              s.enemyBullets.push({
+                x: enemy.x,
+                y: enemy.y + enemy.r,
+                vx: Math.cos(angle + spread) * speed * 0.9,
+                vy: Math.sin(angle + spread) * speed * 0.9,
+                r: 3.5,
+              });
+            }
+          }
         }
 
         if (enemy.y > H + 40) {
@@ -313,9 +345,10 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
 
       for (let i = s.enemyBullets.length - 1; i >= 0; i -= 1) {
         const bullet = s.enemyBullets[i];
+        bullet.x += bullet.vx * dt;
         bullet.y += bullet.vy * dt;
 
-        if (bullet.y > H + 20) {
+        if (bullet.y > H + 20 || bullet.x < -20 || bullet.x > W + 20) {
           s.enemyBullets.splice(i, 1);
           continue;
         }
@@ -604,6 +637,7 @@ export function ThunderGame({ onExit }: { onExit: () => void }) {
             SCORE <span className="font-semibold text-neon">{score}</span>
           </div>
           <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/45 px-2 py-1.5 backdrop-blur">
+            <span className="mr-1 font-mono text-[10px] text-slate-400">LV {level}</span>
             {[0, 1, 2].map((index) => (
               <ShipIcon key={index} dim={index >= lives} />
             ))}

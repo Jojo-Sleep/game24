@@ -13,14 +13,15 @@ interface Fish {
   color: string;
   rarity: string;
   weight: number;
+  escape: number;
 }
 
 const FISH: Fish[] = [
-  { name: '小丑鱼', value: 10, color: '#f5b942', rarity: '普通', weight: 32 },
-  { name: '鲈鱼', value: 16, color: '#80c1ff', rarity: '普通', weight: 26 },
-  { name: '河豚', value: 30, color: '#3ee0a1', rarity: '稀有', weight: 18 },
-  { name: '灯笼鱼', value: 45, color: '#b18cff', rarity: '珍贵', weight: 12 },
-  { name: '黄金鱼', value: 100, color: '#ffd166', rarity: '传说', weight: 5 },
+  { name: '小丑鱼', value: 10, color: '#f5b942', rarity: '普通', weight: 32, escape: 0.02 },
+  { name: '鲈鱼', value: 16, color: '#80c1ff', rarity: '普通', weight: 26, escape: 0.025 },
+  { name: '河豚', value: 30, color: '#3ee0a1', rarity: '稀有', weight: 18, escape: 0.045 },
+  { name: '灯笼鱼', value: 45, color: '#b18cff', rarity: '珍贵', weight: 12, escape: 0.065 },
+  { name: '黄金鱼', value: 100, color: '#ffd166', rarity: '传说', weight: 5, escape: 0.09 },
 ];
 
 function pickFish(): Fish {
@@ -75,8 +76,10 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
       return 0;
     }
   });
+  const [alert, setAlert] = useState<{ text: string; key: number } | null>(null);
 
   const timers = useRef<{ wait?: number; bite?: number; reset?: number }>({});
+  const alertTimer = useRef<number | undefined>(undefined);
   const holding = useRef(false);
   const hookRef = useRef<Fish | null>(null);
   const scoreRef = useRef(0);
@@ -116,6 +119,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
     setHook(fish);
     setPhase('waiting');
     setMessage('');
+    setAlert(null);
     setProgress(0);
     setTension(0);
 
@@ -177,6 +181,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
       if (timers.current.wait) window.clearTimeout(timers.current.wait);
       if (timers.current.bite) window.clearTimeout(timers.current.bite);
       if (timers.current.reset) window.clearTimeout(timers.current.reset);
+      if (alertTimer.current) window.clearTimeout(alertTimer.current);
     },
     [],
   );
@@ -186,8 +191,21 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
 
     let reelProgress = 0;
     let reelTension = 0;
+    let struggleTimer = 0.7 + Math.random() * 0.9;
+    let intervalId = 0;
 
-    const id = window.setInterval(() => {
+    const fail = (text: string) => {
+      window.clearInterval(intervalId);
+      holding.current = false;
+      streakRef.current = 0;
+      setStreak(0);
+      setAlert(null);
+      setPhase('missed');
+      setMessage(text);
+      scheduleReset();
+    };
+
+    intervalId = window.setInterval(() => {
       if (holding.current) {
         reelProgress += 2.5;
         reelTension += 3.1;
@@ -195,25 +213,40 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
         reelProgress = Math.max(0, reelProgress - 0.6);
         reelTension = Math.max(0, reelTension - 3.4);
       }
+
+      // 鱼会不定期挣扎：额外增加张力、回退进度，并有几率直接挣脱
+      struggleTimer -= 0.05;
+      if (struggleTimer <= 0) {
+        struggleTimer = 0.7 + Math.random() * 1.1;
+        const fish = hookRef.current;
+
+        reelTension += 9 + Math.random() * 13;
+        reelProgress = Math.max(0, reelProgress - (3 + Math.random() * 5));
+
+        setAlert({ text: '鱼在挣扎！', key: Date.now() });
+        if (alertTimer.current) window.clearTimeout(alertTimer.current);
+        alertTimer.current = window.setTimeout(() => setAlert(null), 700);
+
+        if (Math.random() < (fish?.escape ?? 0.03)) {
+          fail('鱼挣脱了！');
+          return;
+        }
+      }
+
       reelProgress = Math.min(100, reelProgress);
       reelTension = Math.min(100, reelTension);
       setProgress(reelProgress);
       setTension(reelTension);
 
       if (reelTension >= 100) {
-        window.clearInterval(id);
-        holding.current = false;
-        streakRef.current = 0;
-        setStreak(0);
-        setPhase('missed');
-        setMessage('线绷断了，鱼跑了');
-        scheduleReset();
+        fail('线绷断了，鱼跑了');
         return;
       }
 
       if (reelProgress >= 100) {
-        window.clearInterval(id);
+        window.clearInterval(intervalId);
         holding.current = false;
+        setAlert(null);
         const fish = hookRef.current;
         setPhase('caught');
         setCaught(fish);
@@ -240,7 +273,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
       }
     }, 50);
 
-    return () => window.clearInterval(id);
+    return () => window.clearInterval(intervalId);
   }, [phase, scheduleReset]);
 
   const resetGame = useCallback(() => {
@@ -258,6 +291,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
     setHook(null);
     setCaught(null);
     setMessage('');
+    setAlert(null);
     setProgress(0);
     setTension(0);
   }, []);
@@ -275,23 +309,23 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
 
   const actionLabel =
     phase === 'ready'
-      ? '抛竿'
+      ? '钓鱼'
       : phase === 'waiting'
-        ? '等鱼上钩…'
+        ? '等待'
         : phase === 'bite'
-          ? '收竿！'
+          ? '收竿'
           : phase === 'reel'
-            ? '按住收线'
+            ? '按住'
             : phase === 'caught'
-              ? '收竿成功'
-              : '鱼跑了';
+              ? '完成'
+              : '跑鱼';
 
   const actionClass =
     phase === 'bite'
-      ? 'animate-pulse bg-amber-300 text-ink-950 shadow-[0_12px_36px_-12px_rgba(245,185,66,0.9)]'
+      ? 'animate-pulse border-amber-300/60 bg-amber-300 text-ink-950 shadow-[0_0_0_6px_rgba(245,185,66,0.14),0_14px_30px_-10px_rgba(245,185,66,0.9)]'
       : phase === 'reel' || phase === 'ready'
-        ? 'bg-neon text-ink-950 shadow-[0_12px_36px_-12px_rgba(62,224,161,0.8)]'
-        : 'border border-white/10 bg-white/[0.04] text-slate-500';
+        ? 'border-neon/50 bg-neon text-ink-950 shadow-[0_0_0_6px_rgba(62,224,161,0.12),0_14px_30px_-10px_rgba(62,224,161,0.85)]'
+        : 'border-white/10 bg-white/[0.06] text-slate-400';
 
   return (
     <GameFrame
@@ -320,7 +354,12 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
       </div>
 
       <div className="mx-auto mt-3 w-full" style={{ maxWidth: 'min(420px, 52dvh)' }}>
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[22px] border border-white/10 bg-[#05131d]">
+        <div
+          className={cn(
+            'relative aspect-[4/5] overflow-hidden rounded-[22px] border border-white/10 bg-[#05131d]',
+            alert && 'scene-shake',
+          )}
+        >
           <div className="absolute inset-0 bg-gradient-to-b from-[#0e4159] via-[#072534] to-[#03101a]" />
           <div className="water-rays absolute inset-0" />
           <div className="absolute inset-x-0 top-0 h-px bg-white/25" />
@@ -380,16 +419,54 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
             </div>
           )}
 
-          {phase === 'reel' && (
-            <div className="absolute inset-x-4 bottom-4 space-y-1.5">
-              <Meter label="收线" value={progress} barClass="bg-neon" />
-              <Meter
-                label="张力"
-                value={tension}
-                barClass={tension > 74 ? 'bg-rose-400' : 'bg-amber-300'}
-              />
+          {alert && (
+            <div
+              key={alert.key}
+              className="alert-pop pointer-events-none absolute left-1/2 top-14 z-20 -translate-x-1/2 rounded-full border border-rose-400/30 bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-200"
+            >
+              {alert.text}
             </div>
           )}
+
+          <div className="absolute inset-x-3 bottom-3 z-10 flex items-end gap-2.5">
+            <div className="min-h-[44px] flex-1 space-y-1.5 pb-1.5">
+              {phase === 'reel' ? (
+                <>
+                  <Meter label="收线" value={progress} barClass="bg-neon" />
+                  <Meter
+                    label="张力"
+                    value={tension}
+                    barClass={tension > 74 ? 'bg-rose-400' : 'bg-amber-300'}
+                  />
+                </>
+              ) : (
+                <p className="text-[11px] leading-relaxed text-slate-400/80">
+                  {phase === 'ready' && '点右侧按钮抛竿'}
+                  {phase === 'waiting' && '耐心等鱼咬钩…'}
+                  {phase === 'bite' && '咬钩了，快收竿！'}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              disabled={phase === 'waiting' || phase === 'caught' || phase === 'missed'}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                press();
+              }}
+              onPointerUp={release}
+              onPointerLeave={release}
+              onPointerCancel={release}
+              aria-label="钓鱼"
+              className={cn(
+                'flex h-16 w-16 shrink-0 touch-none select-none items-center justify-center rounded-full border text-xs font-bold transition active:scale-95 disabled:cursor-default',
+                actionClass,
+              )}
+            >
+              {actionLabel}
+            </button>
+          </div>
 
           {phase === 'ready' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
@@ -418,25 +495,7 @@ export function FishingGame({ onExit }: { onExit: () => void }) {
           )}
         </div>
 
-        <button
-          type="button"
-          disabled={phase === 'waiting' || phase === 'caught' || phase === 'missed'}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            press();
-          }}
-          onPointerUp={release}
-          onPointerLeave={release}
-          onPointerCancel={release}
-          className={cn(
-            'mt-3 h-12 w-full touch-none select-none rounded-xl text-sm font-semibold transition active:scale-[0.99] disabled:cursor-default',
-            actionClass,
-          )}
-        >
-          {actionLabel}
-        </button>
-
-        <p className="mt-2 text-center text-[11px] text-slate-500">空格键也可以操作</p>
+        <p className="mt-2 text-center text-[11px] text-slate-500">空格键也可以抛竿 / 收线</p>
       </div>
     </GameFrame>
   );

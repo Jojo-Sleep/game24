@@ -302,6 +302,41 @@ input {
   }
 }
 
+.scene-shake {
+  animation: scene-shake 0.32s ease-in-out;
+}
+
+@keyframes scene-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3px, 1px);
+  }
+  45% {
+    transform: translate(2px, -2px);
+  }
+  70% {
+    transform: translate(-2px, 2px);
+  }
+}
+
+.alert-pop {
+  animation: alert-pop 0.28s ease-out both;
+}
+
+@keyframes alert-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aurora,
   .aurora-slow,
@@ -314,7 +349,9 @@ input {
   .bobber-bite,
   .fish-approach,
   .fish-struggle,
-  .caught-pop {
+  .caught-pop,
+  .scene-shake,
+  .alert-pop {
     animation: none;
   }
 }

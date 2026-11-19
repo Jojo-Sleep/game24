@@ -135,6 +135,19 @@ export function PopStarGame({ onExit }: { onExit: () => void }) {
     [],
   );
 
+  useEffect(() => {
+    // 锁定页面滚动，整个棋盘必须在一屏内完成操作
+    const html = document.documentElement;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = html.style.overflow;
+    document.body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBody;
+      html.style.overflow = prevHtml;
+    };
+  }, []);
+
   const handlePick = (r: number, c: number) => {
     if (busy || over) return;
 
@@ -219,8 +232,11 @@ export function PopStarGame({ onExit }: { onExit: () => void }) {
           )}
         </div>
 
-        <div className="relative mt-3">
-          <div className="grid grid-cols-10 gap-1 rounded-[16px] border border-white/10 bg-black/30 p-1.5 sm:p-2">
+        <div
+          className="relative mx-auto mt-3 w-full"
+          style={{ maxWidth: 'min(460px, calc(100dvh - 210px))' }}
+        >
+          <div className="grid touch-none grid-cols-10 gap-1 rounded-[16px] border border-white/10 bg-black/30 p-1.5 sm:p-2">
             {board.map((row, r) =>
               row.map((tile, c) => (
                 <button
