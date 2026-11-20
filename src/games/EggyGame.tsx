@@ -183,6 +183,8 @@ export function EggyGame({ onExit }: EggyGameProps) {
                 event.preventDefault();
                 engineRef.current?.jump();
               }}
+              onPointerUp={() => engineRef.current?.releaseJump()}
+              onPointerCancel={() => engineRef.current?.releaseJump()}
               className="touch-controls absolute bottom-6 right-5 z-20 h-20 w-20 touch-none select-none items-center justify-center rounded-full border border-amber-300/60 bg-amber-300/90 text-sm font-bold text-ink-950 shadow-[0_0_0_8px_rgba(245,185,66,0.15)] active:scale-95"
             >
               跳跃

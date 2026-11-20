@@ -47,7 +47,7 @@ interface BallRuntime {
 }
 
 const START_TOP = 0;
-const FINISH_Z = -113;
+const FINISH_Z = -156.5;
 
 const PLATFORM_DEFS: PlatformDef[] = [
   { x: 0, z: 0, top: START_TOP, w: 10, d: 10, color: 0x8fe3c7, checkpoint: true },
@@ -64,7 +64,14 @@ const PLATFORM_DEFS: PlatformDef[] = [
   { x: -2.5, z: -94.5, top: 0.6, w: 3, d: 3, color: 0x9ed8ff },
   { x: 2.2, z: -99, top: 0.9, w: 3, d: 3, color: 0xffc3d9 },
   { x: 0, z: -103.5, top: 0.6, w: 3, d: 3, color: 0xc7c2ff },
-  { x: 0, z: -111, top: 1, w: 12, d: 10, color: 0x8fe3c7 },
+  { x: 0, z: -111, top: 1, w: 8, d: 8, color: 0x8fe3c7, checkpoint: true },
+  // 第三段：窄桥、踩点跳跃、纵向移动平台与机关桥
+  { x: 0, z: -119, top: 0.8, w: 2, d: 8, color: 0xffd6a5 },
+  { x: -2.4, z: -125.5, top: 1.1, w: 2.6, d: 2.6, color: 0x9ed8ff },
+  { x: 2.4, z: -130.5, top: 0.9, w: 2.6, d: 2.6, color: 0xffc3d9, checkpoint: true },
+  { x: 0, z: -137, top: 0.7, w: 3.4, d: 3.4, color: 0xffe08a, move: { axis: 'z', range: 2.2, speed: 0.85, phase: 0 } },
+  { x: 0, z: -145, top: 0.9, w: 2, d: 9, color: 0xc7c2ff },
+  { x: 0, z: -154, top: 1.2, w: 10, d: 10, color: 0x8fe3c7 },
 ];
 
 export class EggyEngine {
@@ -97,6 +104,9 @@ export class EggyEngine {
   private grounded = false;
   private hitCooldown = 0;
   private squash = 0;
+  private coyote = 0;
+  private jumpBuffer = 0;
+  private jumpHeld = false;
 
   private spawn = new THREE.Vector3(0, 0.66, 0);
   private running = false;
@@ -190,15 +200,26 @@ export class EggyEngine {
   }
 
   jump(): void {
-    if (!this.running || !this.grounded) return;
-    this.velocity.y = 9;
-    this.grounded = false;
-    this.support = null;
-    this.squash = 1;
+    if (!this.running) return;
+    // 跳跃缓冲：落地前一瞬间按下也能起跳
+    this.jumpBuffer = 0.14;
+    this.jumpHeld = true;
+  }
+
+  releaseJump(): void {
+    this.jumpHeld = false;
+    // 提前松手则跳得更矮，方便精细落点
+    if (this.velocity.y > 4) this.velocity.y *= 0.55;
   }
 
   setTouchInput(x: number, y: number): void {
-    this.touch.set(x, y);
+    const length = Math.hypot(x, y);
+    if (length < 0.12) {
+      this.touch.set(0, 0);
+      return;
+    }
+    const scale = Math.min(1, (length - 0.12) / 0.88) / length;
+    this.touch.set(x * scale, y * scale);
   }
 
   dispose(): void {
@@ -241,6 +262,7 @@ export class EggyEngine {
   };
 
   private onKeyUp = (event: KeyboardEvent): void => {
+    if (event.code === 'Space') this.releaseJump();
     this.keys.delete(event.code);
   };
 
@@ -292,7 +314,7 @@ export class EggyEngine {
         blob.scale.y = 0.55;
         cloud.add(blob);
       }
-      cloud.position.set(-50 + Math.random() * 100, 3 + Math.random() * 16, -4 - Math.random() * 140);
+      cloud.position.set(-50 + Math.random() * 100, 3 + Math.random() * 16, -4 - Math.random() * 168);
       this.clouds.push(cloud);
       this.scene.add(cloud);
     }
@@ -302,7 +324,7 @@ export class EggyEngine {
     for (let i = 0; i < 12; i += 1) {
       const side = i % 2 === 0 ? 1 : -1;
       const x = side * (20 + Math.random() * 26);
-      const z = -6 - Math.random() * 140;
+      const z = -6 - Math.random() * 168;
       const y = -5 - Math.random() * 6;
       const radius = 3 + Math.random() * 2.5;
 
@@ -322,11 +344,14 @@ export class EggyEngine {
 
     this.addHammer(0, 0.4, -29, 3.4, 1.5, 0);
     this.addHammer(0, 0.8, -82, 2.6, 1.7, 0.6);
+    this.addHammer(0, 0.8, -86, 1.8, 1.9, 0.5);
     this.addHammer(0, 0.8, -90, 2.6, -1.9, 2.1);
+    this.addHammer(0, 0.9, -145, 2, 1.4, 1.1);
 
     this.addBall(0, 2.15, -52, 'x', 3.9, 1.0, 0, 0.95);
     this.addBall(0, 2.15, -58, 'x', 3.9, 1.3, 1.8, 0.95);
     this.addBall(0, 2.15, -64, 'x', 3.9, 1.6, 0.9, 0.95);
+    this.addBall(0, 1.85, -119, 'x', 1.7, 1.5, 0, 0.72);
   }
 
   private addPlatform(def: PlatformDef): void {
@@ -426,7 +451,7 @@ export class EggyEngine {
   }
 
   private buildFinishArch(): void {
-    const top = 1;
+    const top = 1.2;
     const material = new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.45, metalness: 0.2 });
 
     for (const x of [-3.4, 3.4]) {
@@ -617,16 +642,33 @@ export class EggyEngine {
       this.grounded = false;
     }
 
+    // 土狼时间 + 跳跃缓冲，让起跳更跟手
+    if (this.grounded) this.coyote = 0.1;
+    else this.coyote = Math.max(0, this.coyote - dt);
+    this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
+
+    if (this.jumpBuffer > 0 && (this.grounded || this.coyote > 0)) {
+      this.velocity.y = 9.2;
+      this.grounded = false;
+      this.support = null;
+      this.coyote = 0;
+      this.jumpBuffer = 0;
+      this.squash = Math.max(this.squash, 0.9);
+    }
+
     const input = this.readInput();
-    const targetX = input.x * 7.2;
-    const targetZ = input.y * 7.2;
-    const accel = this.grounded ? 13 : 6.5;
+    const moving = input.lengthSq() > 0.001;
+    const targetX = input.x * 7.4;
+    const targetZ = input.y * 7.4;
+    const accel = this.grounded ? (moving ? 16 : 24) : 9;
     this.velocity.x += (targetX - this.velocity.x) * Math.min(1, accel * dt);
     this.velocity.z += (targetZ - this.velocity.z) * Math.min(1, accel * dt);
 
     if (!this.grounded) {
-      this.velocity.y -= 26 * dt;
-      this.velocity.y = Math.max(this.velocity.y, -32);
+      // 按住跳得更高，轻点跳得更矮
+      const gravity = this.velocity.y > 0 && this.jumpHeld ? 21 : 30;
+      this.velocity.y -= gravity * dt;
+      this.velocity.y = Math.max(this.velocity.y, -34);
     }
 
     position.x += this.velocity.x * dt;
@@ -771,6 +813,9 @@ export class EggyEngine {
     this.support = null;
     this.grounded = false;
     this.hitCooldown = 0.8;
+    this.coyote = 0;
+    this.jumpBuffer = 0;
+    this.jumpHeld = false;
     this.callbacks.onRespawn();
   }
 
@@ -827,10 +872,19 @@ export class EggyEngine {
 
   private updateCamera(dt: number): void {
     const position = this.player.position;
-    const desired = new THREE.Vector3(position.x, position.y + 5.2, position.z + 9.6);
-    const factor = Math.min(1, 6 * dt);
+    // 轻微跟随速度方向做前瞻，转身和加速时画面更顺
+    const desired = new THREE.Vector3(
+      position.x + this.velocity.x * 0.16,
+      position.y + 5.2,
+      position.z + 9.6 + this.velocity.z * 0.08,
+    );
+    const factor = Math.min(1, 7 * dt);
     this.camera.position.lerp(desired, factor);
-    this.camera.lookAt(position.x, position.y + 1, position.z - 3.6);
+    this.camera.lookAt(
+      position.x + this.velocity.x * 0.12,
+      position.y + 1,
+      position.z - 3.6 + this.velocity.z * 0.12,
+    );
   }
 
   private updateSun(): void {
@@ -852,6 +906,9 @@ export class EggyEngine {
     this.grounded = false;
     this.hitCooldown = 0;
     this.squash = 0;
+    this.coyote = 0;
+    this.jumpBuffer = 0;
+    this.jumpHeld = false;
     this.walkPhase = 0;
     this.walkBlend = 0;
     this.playerVisual.rotation.set(0, 0, 0);

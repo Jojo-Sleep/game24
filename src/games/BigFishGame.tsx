@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { GameFrame } from '../components/GameFrame';
 import { cn } from '../lib/cn';
-import { BigFishEngine } from '../lib/bigFish';
+import { BIG_FISH_GOAL, BIG_FISH_START, BigFishEngine } from '../lib/bigFish';
 
 const BEST_KEY = 'game24-bigfish-best';
 
-type Status = 'ready' | 'playing' | 'over';
+type Status = 'ready' | 'playing' | 'paused' | 'over' | 'won';
 
 function LifeIcon({ dim }: { dim: boolean }) {
   return (
@@ -38,10 +38,30 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
     }
   });
   const [newRecord, setNewRecord] = useState(false);
+  const statusRef = useRef<Status>('ready');
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
+
+    const recordBest = (value: number) => {
+      const previous = Number(localStorage.getItem(BEST_KEY)) || 0;
+      if (value > previous) {
+        try {
+          localStorage.setItem(BEST_KEY, String(value));
+        } catch {
+          // 存储不可用时忽略
+        }
+        setBest(value);
+        setNewRecord(true);
+      } else {
+        setNewRecord(false);
+      }
+    };
 
     const engine = new BigFishEngine(canvas, {
       onScore: (value) => setScore(value),
@@ -49,18 +69,11 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
       onSize: (value) => setSize(value),
       onGameOver: (value) => {
         setStatus('over');
-        const previous = Number(localStorage.getItem(BEST_KEY)) || 0;
-        if (value > previous) {
-          try {
-            localStorage.setItem(BEST_KEY, String(value));
-          } catch {
-            // 存储不可用时忽略
-          }
-          setBest(value);
-          setNewRecord(true);
-        } else {
-          setNewRecord(false);
-        }
+        recordBest(value);
+      },
+      onWin: (value) => {
+        setStatus('won');
+        recordBest(value);
       },
     });
 
@@ -78,17 +91,67 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
     setNewRecord(false);
   };
 
+  const pause = () => {
+    if (statusRef.current !== 'playing') return;
+    engineRef.current?.pause();
+    setStatus('paused');
+  };
+
+  const resume = () => {
+    if (statusRef.current !== 'paused') return;
+    engineRef.current?.resume();
+    setStatus('playing');
+  };
+
+  // P / Esc 暂停继续，切到后台自动暂停
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'p' && event.key !== 'P' && event.key !== 'Escape') return;
+      event.preventDefault();
+      if (statusRef.current === 'playing') pause();
+      else if (statusRef.current === 'paused') resume();
+    };
+    const onVisibility = () => {
+      if (document.hidden) pause();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
+
+  const progress = Math.max(
+    0,
+    Math.min(100, ((size - BIG_FISH_START) / (BIG_FISH_GOAL - BIG_FISH_START)) * 100),
+  );
+
   return (
     <GameFrame
       title="大鱼吃小鱼"
       subtitle="吞噬成长 · 躲避大鱼"
       onExit={onExit}
-      right={<span className="font-mono text-[11px] text-slate-500">BEST {best}</span>}
+      right={
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[11px] text-slate-500">BEST {best}</span>
+          {(status === 'playing' || status === 'paused') && (
+            <button
+              type="button"
+              onClick={status === 'paused' ? resume : pause}
+              className="h-10 select-none rounded-full border border-white/15 bg-white/[0.06] px-3.5 text-[11px] text-slate-200 transition hover:border-white/30 sm:h-9"
+            >
+              {status === 'paused' ? '继续' : '暂停'}
+            </button>
+          )}
+        </div>
+      }
     >
       <div className="mx-auto w-full max-w-[520px]">
         <section
           className="relative mx-auto aspect-square w-full overflow-hidden rounded-[22px] border border-white/10 bg-[#02101c] shadow-[0_28px_80px_-40px_rgba(62,224,161,0.45)]"
-          style={{ maxWidth: 'min(520px, calc(100dvh - 170px))' }}
+          style={{ maxWidth: 'max(260px, min(520px, calc(100dvh - 170px)))' }}
         >
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full touch-none" aria-label="大鱼吃小鱼游戏区域" />
 
@@ -105,13 +168,19 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
                 ))}
               </div>
               <div className="rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10px] text-slate-300 backdrop-blur">
-                体型 {Math.round(size)}
+                体型 {Math.round(size)} / {BIG_FISH_GOAL}
+              </div>
+              <div className="h-1.5 w-24 overflow-hidden rounded-full border border-white/10 bg-black/40">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-neon to-emerald-200 transition-[width] duration-300"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
           </div>
 
           {status === 'ready' && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[#02101c]/65 px-6 text-center backdrop-blur-[2px]">
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-[#02101c]/65 px-6 py-4 text-center backdrop-blur-[2px]">
               <div>
                 <p className="text-2xl font-extrabold text-white">大鱼吃小鱼</p>
                 <p className="mt-1 text-xs leading-relaxed text-slate-300">
@@ -119,9 +188,11 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
                 </p>
               </div>
               <div className="space-y-1 rounded-2xl border border-white/15 bg-black/35 px-4 py-3 text-[11px] leading-relaxed text-slate-300">
+                <p className="font-semibold text-neon">通关目标：体型长到 {BIG_FISH_GOAL}</p>
                 <p>电脑：WASD / 方向键游动，也可以直接移动鼠标</p>
                 <p>手机：在画面上拖动，鱼儿会朝手指游过去</p>
                 <p>绿黄蓝小鱼可以吃，红紫大鱼会咬你，灰色体型相近吃不了</p>
+                <p>按 P / Esc 暂停，切到后台也会自动暂停</p>
               </div>
               <button
                 type="button"
@@ -134,8 +205,71 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
             </div>
           )}
 
+          {status === 'paused' && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#02101c]/75 px-6 py-4 text-center backdrop-blur-sm">
+              <p className="text-2xl font-extrabold text-white">已暂停</p>
+              <p className="text-[11px] text-slate-400">
+                体型 {Math.round(size)} / {BIG_FISH_GOAL} · 得分 {score}
+              </p>
+              <div className="mt-1 flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={onExit}
+                  className="h-10 rounded-full border border-white/15 bg-white/[0.06] px-4 text-xs text-slate-200 transition hover:border-white/30"
+                >
+                  返回大厅
+                </button>
+                <button
+                  type="button"
+                  onClick={start}
+                  className="h-10 rounded-full border border-white/15 bg-white/[0.06] px-4 text-xs text-slate-200 transition hover:border-white/30"
+                >
+                  重新开始
+                </button>
+                <button
+                  type="button"
+                  onClick={resume}
+                  className="h-10 rounded-full bg-neon px-5 text-xs font-bold text-ink-950 transition active:scale-95"
+                >
+                  继续游戏
+                </button>
+              </div>
+            </div>
+          )}
+
+          {status === 'won' && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#02101c]/82 px-6 py-4 text-center backdrop-blur-sm">
+              <p className="text-2xl font-extrabold text-amber-300">称霸海洋！</p>
+              <div className="font-mono text-4xl font-bold tabular-nums text-white">{score}</div>
+              <p className="text-[11px] text-slate-300">体型达到 {BIG_FISH_GOAL}，本局通关</p>
+              {newRecord ? (
+                <span className="rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1 text-[11px] font-semibold text-amber-200">
+                  新的最高分
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-400">最高分 {best}</span>
+              )}
+              <div className="mt-1 flex gap-2">
+                <button
+                  type="button"
+                  onClick={onExit}
+                  className="h-10 rounded-full border border-white/15 bg-white/[0.06] px-5 text-xs text-slate-200 transition hover:border-white/30"
+                >
+                  返回大厅
+                </button>
+                <button
+                  type="button"
+                  onClick={start}
+                  className="h-10 rounded-full bg-neon px-6 text-xs font-bold text-ink-950 transition active:scale-95"
+                >
+                  再玩一局
+                </button>
+              </div>
+            </div>
+          )}
+
           {status === 'over' && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-[#02101c]/80 px-6 text-center backdrop-blur-sm">
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-[#02101c]/80 px-6 py-4 text-center backdrop-blur-sm">
               <p className="text-2xl font-extrabold text-rose-400">被吃掉了！</p>
               <div className="font-mono text-4xl font-bold tabular-nums text-white">{score}</div>
               {newRecord ? (
@@ -168,7 +302,7 @@ export function BigFishGame({ onExit }: { onExit: () => void }) {
         </section>
 
         <p className="pointer-hint mt-3 text-center text-[11px] text-slate-500">
-          拖动或方向键控制游动 · 只吃比自己小的鱼 · 三条命耗尽结束
+          拖动或方向键控制游动 · 只吃比自己小的鱼 · 长到体型 {BIG_FISH_GOAL} 即通关
         </p>
       </div>
     </GameFrame>

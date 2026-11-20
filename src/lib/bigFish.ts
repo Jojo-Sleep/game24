@@ -4,14 +4,21 @@ const MIN_SIZE = 13;
 const MAX_SIZE = 40;
 const START_LIVES = 3;
 
+const WIN_SIZE = 32;
+
+/** 吃鱼成长到该体型即通关 */
+export const BIG_FISH_GOAL = WIN_SIZE;
+export const BIG_FISH_START = MIN_SIZE;
+
 export interface BigFishCallbacks {
   onScore: (score: number) => void;
   onLives: (lives: number) => void;
   onSize: (size: number) => void;
   onGameOver: (score: number) => void;
+  onWin: (score: number) => void;
 }
 
-type State = 'idle' | 'playing' | 'over';
+type State = 'idle' | 'playing' | 'over' | 'won';
 
 interface FishEntity {
   x: number;
@@ -85,6 +92,7 @@ export class BigFishEngine {
   private popups: Popup[] = [];
 
   private state: State = 'idle';
+  private paused = false;
   private score = 0;
   private lives = START_LIVES;
   private elapsed = 0;
@@ -136,6 +144,7 @@ export class BigFishEngine {
 
   start(): void {
     this.state = 'playing';
+    this.paused = false;
     this.score = 0;
     this.lives = START_LIVES;
     this.elapsed = 0;
@@ -157,6 +166,17 @@ export class BigFishEngine {
     }
 
     this.emitAll();
+  }
+
+  pause(): void {
+    if (this.state !== 'playing') return;
+    this.paused = true;
+    this.pointer.active = false;
+    this.keys.clear();
+  }
+
+  resume(): void {
+    this.paused = false;
   }
 
   destroy(): void {
@@ -233,6 +253,8 @@ export class BigFishEngine {
   };
 
   private update(dt: number): void {
+    if (this.paused) return;
+
     this.shake = Math.max(0, this.shake - 44 * dt);
     this.flash = Math.max(0, this.flash - 1.8 * dt);
     this.updateBubbles(dt);
@@ -326,6 +348,11 @@ export class BigFishEngine {
 
     this.player.size = Math.min(MAX_SIZE, this.player.size + 0.55 + fish.size * 0.12);
 
+    if (this.player.size >= WIN_SIZE && this.state === 'playing') {
+      this.win();
+      return;
+    }
+
     this.burst(fish.x, fish.y, 10, ['#a7f3d0', '#fde68a', '#7dd3fc']);
     this.popups.push({
       x: fish.x,
@@ -374,6 +401,28 @@ export class BigFishEngine {
       this.state = 'over';
       this.callbacks.onGameOver(this.score);
     }
+  }
+
+  private win(): void {
+    const p = this.player;
+    this.state = 'won';
+    this.shake = 10;
+    this.flash = 0.2;
+    this.burst(p.x, p.y, 34, ['#a7f3d0', '#fde68a', '#7dd3fc', '#fef08a']);
+    this.popups.push({
+      x: p.x,
+      y: p.y - p.size,
+      vy: -24,
+      life: 1.2,
+      max: 1.2,
+      text: '称霸海洋！',
+      color: '#fef08a',
+      size: 18,
+    });
+
+    this.callbacks.onScore(this.score);
+    this.callbacks.onSize(this.player.size);
+    this.callbacks.onWin(this.score);
   }
 
   private updateSpawner(dt: number): void {
