@@ -1,10 +1,10 @@
 const W = 480;
 const H = 480;
 const MIN_SIZE = 13;
-const MAX_SIZE = 40;
+const MAX_SIZE = 48;
 const START_LIVES = 3;
 
-const WIN_SIZE = 32;
+const WIN_SIZE = 40;
 
 /** 吃鱼成长到该体型即通关 */
 export const BIG_FISH_GOAL = WIN_SIZE;
@@ -346,7 +346,7 @@ export class BigFishEngine {
     const gained = Math.round(10 + fish.size * 6);
     this.score += gained;
 
-    this.player.size = Math.min(MAX_SIZE, this.player.size + 0.55 + fish.size * 0.12);
+    this.player.size = Math.min(MAX_SIZE, this.player.size + 0.35 + fish.size * 0.05);
 
     if (this.player.size >= WIN_SIZE && this.state === 'playing') {
       this.win();
