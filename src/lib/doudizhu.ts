@@ -124,7 +124,8 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export function sortCards(cards: Card[]): Card[] {
-  return [...cards].sort((a, b) => a.rank - b.rank || a.suit.localeCompare(b.suit));
+  // 手牌从大到小排列，左侧最大
+  return [...cards].sort((a, b) => b.rank - a.rank || a.suit.localeCompare(b.suit));
 }
 
 function isRun(ranks: number[]): boolean {
