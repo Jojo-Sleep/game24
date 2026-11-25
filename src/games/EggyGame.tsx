@@ -7,7 +7,7 @@ interface EggyGameProps {
   onExit: () => void;
 }
 
-const BEST_KEY = 'eggy-best';
+const BEST_KEY = 'eggy-best-v2';
 
 function formatTime(seconds: number): string {
   const total = Math.max(0, seconds);
@@ -197,7 +197,7 @@ export function EggyGame({ onExit }: EggyGameProps) {
             <div>
               <p className="text-2xl font-extrabold text-white">蛋仔闯关</p>
               <p className="mt-1 text-xs leading-relaxed text-slate-300">
-                穿过浮空平台、躲开旋转锤和滚球，冲过终点旗
+                穿过浮空平台，躲开旋转锤、滚球和升降台，冲过终点旗
               </p>
             </div>
             <div className="space-y-1 rounded-2xl border border-white/15 bg-black/35 px-4 py-3 text-[11px] leading-relaxed text-slate-300">

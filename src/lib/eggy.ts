@@ -15,7 +15,7 @@ interface PlatformDef {
   h?: number;
   color: number;
   checkpoint?: boolean;
-  move?: { axis: 'x' | 'z'; range: number; speed: number; phase: number };
+  move?: { axis: 'x' | 'y' | 'z'; range: number; speed: number; phase: number };
 }
 
 interface PlatformRuntime {
@@ -47,7 +47,7 @@ interface BallRuntime {
 }
 
 const START_TOP = 0;
-const FINISH_Z = -156.5;
+const FINISH_Z = -200.5;
 
 const PLATFORM_DEFS: PlatformDef[] = [
   { x: 0, z: 0, top: START_TOP, w: 10, d: 10, color: 0x8fe3c7, checkpoint: true },
@@ -71,7 +71,14 @@ const PLATFORM_DEFS: PlatformDef[] = [
   { x: 2.4, z: -130.5, top: 0.9, w: 2.6, d: 2.6, color: 0xffc3d9, checkpoint: true },
   { x: 0, z: -137, top: 0.7, w: 3.4, d: 3.4, color: 0xffe08a, move: { axis: 'z', range: 2.2, speed: 0.85, phase: 0 } },
   { x: 0, z: -145, top: 0.9, w: 2, d: 9, color: 0xc7c2ff },
-  { x: 0, z: -154, top: 1.2, w: 10, d: 10, color: 0x8fe3c7 },
+  { x: 0, z: -154, top: 1.2, w: 10, d: 10, color: 0x8fe3c7, checkpoint: true },
+  // 第四段：升降台、锤球窄桥、对角跳台与终点前的连续机关
+  { x: 0, z: -161.5, top: 0.8, w: 3.4, d: 3.4, color: 0x9ed8ff, move: { axis: 'y', range: 1.5, speed: 1.1, phase: 0 } },
+  { x: 0, z: -168.5, top: 1.4, w: 1.8, d: 7, color: 0xffd6a5 },
+  { x: -2.1, z: -176.5, top: 1.1, w: 2.4, d: 2.4, color: 0xffc3d9 },
+  { x: 2.1, z: -181.5, top: 1.2, w: 3, d: 3, color: 0x8fe3c7, checkpoint: true },
+  { x: 0, z: -189, top: 1.2, w: 1.9, d: 8, color: 0xc7c2ff },
+  { x: 0, z: -198.5, top: 1.2, w: 9, d: 9, color: 0xffe08a },
 ];
 
 export class EggyEngine {
@@ -314,7 +321,7 @@ export class EggyEngine {
         blob.scale.y = 0.55;
         cloud.add(blob);
       }
-      cloud.position.set(-50 + Math.random() * 100, 3 + Math.random() * 16, -4 - Math.random() * 168);
+      cloud.position.set(-50 + Math.random() * 100, 3 + Math.random() * 16, -4 - Math.random() * 215);
       this.clouds.push(cloud);
       this.scene.add(cloud);
     }
@@ -324,7 +331,7 @@ export class EggyEngine {
     for (let i = 0; i < 12; i += 1) {
       const side = i % 2 === 0 ? 1 : -1;
       const x = side * (20 + Math.random() * 26);
-      const z = -6 - Math.random() * 168;
+      const z = -6 - Math.random() * 215;
       const y = -5 - Math.random() * 6;
       const radius = 3 + Math.random() * 2.5;
 
@@ -352,6 +359,11 @@ export class EggyEngine {
     this.addBall(0, 2.15, -58, 'x', 3.9, 1.3, 1.8, 0.95);
     this.addBall(0, 2.15, -64, 'x', 3.9, 1.6, 0.9, 0.95);
     this.addBall(0, 1.85, -119, 'x', 1.7, 1.5, 0, 0.72);
+
+    this.addHammer(0, 1.4, -168.5, 1.6, 1.5, 0.2);
+    this.addBall(0, 2.45, -170.8, 'x', 1.15, 1.6, 0.4, 0.62);
+    this.addBall(0, 2.25, -187.3, 'x', 1.2, 1.35, 0, 0.62);
+    this.addHammer(0, 1.2, -190.5, 1.7, 1.7, 0.6);
   }
 
   private addPlatform(def: PlatformDef): void {
@@ -603,6 +615,7 @@ export class EggyEngine {
         const offset = Math.sin(this.motionTime * platform.move.speed + platform.move.phase) * platform.move.range;
         platform.current.copy(platform.base);
         if (platform.move.axis === 'x') platform.current.x += offset;
+        else if (platform.move.axis === 'y') platform.current.y += offset;
         else platform.current.z += offset;
       }
 
@@ -660,7 +673,7 @@ export class EggyEngine {
     const moving = input.lengthSq() > 0.001;
     const targetX = input.x * 7.4;
     const targetZ = input.y * 7.4;
-    const accel = this.grounded ? (moving ? 16 : 24) : 9;
+    const accel = this.grounded ? (moving ? 18 : 26) : 11;
     this.velocity.x += (targetX - this.velocity.x) * Math.min(1, accel * dt);
     this.velocity.z += (targetZ - this.velocity.z) * Math.min(1, accel * dt);
 
@@ -816,6 +829,8 @@ export class EggyEngine {
     this.coyote = 0;
     this.jumpBuffer = 0;
     this.jumpHeld = false;
+    // 直接对准出生点视角，避免镜头从坠落处慢慢飞回来
+    this.camera.position.set(this.spawn.x, this.spawn.y + 5.2, this.spawn.z + 9.6);
     this.callbacks.onRespawn();
   }
 
