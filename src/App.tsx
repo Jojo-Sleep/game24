@@ -3,6 +3,7 @@ import { Background } from './components/Background';
 import { Lobby, type GameId } from './components/Lobby';
 import { BigFishGame } from './games/BigFishGame';
 import { BoxingGame } from './games/BoxingGame';
+import { DoudizhuGame } from './games/DoudizhuGame';
 import { EggyGame } from './games/EggyGame';
 import { FishingGame } from './games/FishingGame';
 import { MahjongGame } from './games/MahjongGame';
@@ -35,6 +36,7 @@ export default function App() {
         {game === 'bigfish' && <BigFishGame onExit={() => setGame(null)} />}
         {game === 'fishing' && <FishingGame onExit={() => setGame(null)} />}
         {game === 'spider' && <SpiderGame onExit={() => setGame(null)} />}
+        {game === 'doudizhu' && <DoudizhuGame onExit={() => setGame(null)} />}
         {game === 'mahjong' && (
           <MahjongGame
             initialRoom={initialRoom}

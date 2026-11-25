@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 export type GameId =
+  | 'doudizhu'
   | 'twenty-four'
   | 'thunder'
   | 'popstar'
@@ -36,6 +37,25 @@ const GAMES: GameCard[] = [
     icon: <span className="text-xl font-extrabold">中</span>,
     iconClass: 'border-rose-400/30 bg-rose-400/10 text-rose-300',
     glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(251,113,133,0.9)]',
+  },
+  {
+    id: 'doudizhu',
+    name: '斗地主',
+    tag: '纸牌',
+    desc: '叫地主抢底牌，和两个电脑对手斗智斗勇',
+    icon: (
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2.6" y="3.4" width="8.4" height="12.4" rx="1.4" stroke="currentColor" strokeWidth="1.3" />
+        <rect x="7.6" y="6.2" width="8.4" height="12.4" rx="1.4" stroke="currentColor" strokeWidth="1.3" />
+        <rect x="12.6" y="9" width="8.4" height="11.6" rx="1.4" fill="#0b1220" stroke="currentColor" strokeWidth="1.3" />
+        <path
+          d="M16.8 11.4c-1.4 0-2.5 1-2.5 2.1 0 1.4 1.7 2.2 2.5 3.1 0.8-.9 2.5-1.7 2.5-3.1 0-1.1-1.1-2.1-2.5-2.1z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
+    iconClass: 'border-orange-300/30 bg-orange-300/10 text-orange-300',
+    glowClass: 'hover:shadow-[0_26px_70px_-40px_rgba(253,186,116,0.9)]',
   },
   {
     id: 'eggy',
@@ -203,7 +223,7 @@ export function Lobby({ onSelect }: LobbyProps) {
           小游戏
           <span className="bg-gradient-to-r from-neon to-sky-300 bg-clip-text text-transparent">合集</span>
         </h1>
-        <p className="text-xs text-slate-500">十款游戏，随时开一局</p>
+        <p className="text-xs text-slate-500">十一款游戏，随时开一局</p>
       </header>
 
       <div className="flex flex-col gap-3">
